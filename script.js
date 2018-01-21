@@ -1,7 +1,10 @@
 $(document).ready(function()
  {
-    var sessionTime = 25;
-    var breakTime = 5;
+    const defaultSessionTime = 25;
+    const defaultBreakTime = 5;
+
+    var sessionTime = defaultSessionTime;
+    var breakTime = defaultBreakTime;
     var mode = "Session";
     var modeElement = document.getElementById("mode");
     var timer = sessionTime * 60;
@@ -9,7 +12,6 @@ $(document).ready(function()
 
     $('#session .val').val(sessionTime);
 	$('#break .val').val(breakTime);
-    
     $('#mode').text(mode);
     $('#timer').text( toTimeString(timer) );
 
@@ -73,7 +75,24 @@ $(document).ready(function()
         }
     }
     
-    $('#play_pause').on('click', function() {
+    function stop()
+    {
+        if ( intervalID != null )
+        {
+            clearInterval(intervalID);
+            intervalID = null;
+        }
+
+        timer = sessionTime * 60;
+        mode = "Session";
+        $('#timer').text( toTimeString(timer) );
+        $('#mode').text(mode);
+        setModeElementColor();
+        $('#play_pause i').text("play_arrow");
+    }
+    
+    $('#play_pause').on('click', function()
+    {
 		if ( intervalID === null )
         {
             // run the specified function every 1000 milliseconds
@@ -92,41 +111,66 @@ $(document).ready(function()
         setModeElementColor();
 	});
     
+    $('#stop').on('click', stop);
+
+    $('#reset').on('click', function()
+    {
+        sessionTime = defaultSessionTime;
+        breakTime = defaultBreakTime;
+        stop();
+        $('#session .val').val(sessionTime);
+        $('#break .val').val(breakTime);
+    });
+    
     $('#session .val').on('input', function()
     {
-        let value = parseInt($(this).val(), 10);
-
-        if ( value <= 0 || isNaN(value) )
+        if ( intervalID === null )
         {
-            value = sessionTime;
+            let value = parseInt($(this).val(), 10);
+
+            if ( value <= 0 || isNaN(value) )
+            {
+                value = sessionTime;
+                $(this).val(sessionTime);
+            }
+            else if ( value > (23*60) )
+            {
+                value = 23 * 60; // limit to 23 hours
+                $(this).val(value);
+            }
+
+            sessionTime = value;
+            timer = sessionTime * 60;
+            $('#timer').text( toTimeString(timer) );
+        }
+        else
+        {
             $(this).val(sessionTime);
         }
-        else if ( value > (23*60) )
-        {
-            value = 23 * 60; // limit to 23 hours
-            $(this).val(value);
-        }
-
-        sessionTime = value;
-        timer = value * 60;
-        $('#timer').text( toTimeString(timer) );
     });
     
     $('#break .val').on('input', function()
     {
-        let value = parseInt($(this).val(), 10);
-
-        if ( value <= 0 || isNaN(value) )
+        if ( intervalID === null )
         {
-            value = breakTime;
+            let value = parseInt($(this).val(), 10);
+
+            if ( value <= 0 || isNaN(value) )
+            {
+                value = breakTime;
+                $(this).val(breakTime);
+            }
+            else if ( value > (23*60) )
+            {
+                value = 23 * 60; // limit to 23 hours
+                $(this).val(value);
+            }
+
+            breakTime = value;
+        }
+        else
+        {
             $(this).val(breakTime);
         }
-        else if ( value > (23*60) )
-        {
-            value = 23 * 60; // limit to 23 hours
-            $(this).val(value);
-        }
-
-        breakTime = value;
     });
 });
